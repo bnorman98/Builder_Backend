@@ -1,24 +1,14 @@
 from django.db import models
-
-class User(models.Model):
-    username = models.TextField()
-    password = models.TextField()
-    created = models.DateTimeField(auto_now_add=True)
-    display_name = models.TextField(default='user')
-    experience_level = models.IntegerField(default=0)
-    is_trainer = models.BooleanField(default=True)
-    class Meta:
-        ordering = ['created']
+from users.models import CustomUser
 
 class Plan(models.Model):
-    #TODO: change to models.DateTimeField()
     time = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='owner')
     title = models.TextField(default='Basic_Full_Body')
     isthisthingon = models.TextField(default='NO')
     description = models.TextField(default='Causes migrate')
-    #TODO: implement google maps API
     location = models.TextField()
+    subscribers = models.ManyToManyField(CustomUser)
     class Meta:
         ordering = ['created']
