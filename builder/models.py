@@ -16,7 +16,8 @@ class Plan(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.TextField(default='Basic_Full_Body')
-    description = models.TextField(default='lorem ipsum')
+    isthisthingon = models.TextField(default='NO')
+    description = models.TextField(default='Causes migrate')
     #TODO: implement google maps API
     location = models.TextField()
     class Meta:
