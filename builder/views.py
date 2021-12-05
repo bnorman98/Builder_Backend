@@ -1,10 +1,11 @@
 # Create your views here.
 
+from django.http.response import HttpResponseForbidden, JsonResponse
 from builder.models import  Plan
 from builder.serializers import PlanSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from django.core.handlers.wsgi import WSGIRequest
+from django.core.handlers.wsgi import WSGIHandler, WSGIRequest
 import json
 from django.http import HttpResponse
 from users.models import CustomUser
@@ -41,3 +42,15 @@ def test(request : WSGIRequest, pk):
     #user_name = request.user.username
     #print(user_name)
     return HttpResponse(json.dumps({}), content_type="application/json")
+
+def get_join(req: WSGIRequest):
+  print(req.user)
+  if req.user.is_authenticated:
+    plans = Plan.objects.all()
+    joined_plans = []
+    for plan in plans:
+      if req.user in plan.subscribers:
+        joined_plans.append(plan)
+    return JsonResponse(joined_plans)
+  else:
+    return HttpResponseForbidden()
