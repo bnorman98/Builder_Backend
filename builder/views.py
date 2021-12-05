@@ -1,14 +1,12 @@
 # Create your views here.
 
-from django.http.response import HttpResponseForbidden, JsonResponse
+from django.http.response import JsonResponse
 from builder.models import  Plan
 from builder.serializers import PlanSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from django.core.handlers.wsgi import WSGIHandler, WSGIRequest
-import json
-from django.http import HttpResponse
-from users.models import CustomUser
+from rest_framework.decorators import api_view, permission_classes
+from django.core.handlers.wsgi import WSGIRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
@@ -24,33 +22,20 @@ class PlanDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Plan.objects.all()
     serializer_class = PlanSerializer
-    
-def test(request : WSGIRequest, pk):
-    
-    if request.user is None:
-        response_data = {}
-        response_data['result'] = 'error'
-        response_data['message'] = 'Some error message'
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-    plan = Plan.objects.filter(id=pk)[0]
-    user = CustomUser.objects.filter(email=request.user.email)[0]
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def join_session(request : WSGIRequest, pk):
+    plan = Plan.objects.get(pk=pk)
+    if len(plan.subscribers.filter(pk=request.user.pk)) == 0:
+      plan.subscribers.add(request.user)
+      plan.save()
+    return JsonResponse({"success": "ok"}, safe=False)
 
-    plan.subscribers.add(user)
-    plan.save()
-
-    #user_name = request.user.username
-    #print(user_name)
-    return HttpResponse(json.dumps({}), content_type="application/json")
-
-def get_join(req: WSGIRequest):
-  print(req.user)
-  if req.user.is_authenticated:
-    plans = Plan.objects.all()
-    joined_plans = []
-    for plan in plans:
-      if req.user in plan.subscribers:
-        joined_plans.append(plan)
-    return JsonResponse(joined_plans)
-  else:
-    return HttpResponseForbidden()
+# @authentication_classes([SessionAuthentication, BasicAuthentication])
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_joinned_sessions(req: WSGIRequest):
+  plans = list(Plan.objects.filter(subscribers=req.user))
+  plans = list(map(lambda p: p.data, map(PlanSerializer,plans)))
+  return JsonResponse(plans, safe=False)
