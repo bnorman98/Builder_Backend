@@ -8,9 +8,10 @@ class CustomUser(AbstractUser):
     username = models.TextField(null=True)
     email = models.EmailField(_('email address'), unique=True)
     exp_level = models.IntegerField(null=True)
+    name = models.TextField(null=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['name']
 
     objects = CustomUserManager()
 
